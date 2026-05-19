@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Split Adjustment — Sound Painting Solutions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --border: #e2ddd6;
+    --text: #1a1814;
+    --muted: #8a847a;
+    --accent: #2d5a3d;
+    --accent-light: #eaf2ec;
+    --error: #c0392b;
+    --error-light: #fdf0ef;
+    --success: #2d5a3d;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 16px 80px;
+  }
+
+  header {
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 40px;
+  }
+
+  .wordmark {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  h1 span {
+    font-weight: 600;
+  }
+
+  .total-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-light);
+    border: 1px solid #c3dbc9;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-top: 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  .total-badge .label {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .total-badge .amount {
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-header h2 {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .job-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .job-list {
+    padding: 8px 0;
+  }
+
+  .job-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .job-row:last-child { border-bottom: none; }
+  .job-row:hover { background: #faf9f7; }
+
+  .job-info { min-width: 0; }
+
+  .job-name {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .job-number {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .amount-input-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .amount-input-wrap::before {
+    content: '$';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .amount-input {
+    font-family: var(--mono);
+    font-size: 14px;
+    width: 110px;
+    padding: 8px 10px 8px 22px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    text-align: right;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .amount-input::-webkit-outer-spin-button,
+  .amount-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .amount-input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  .amount-input.has-value {
+    border-color: #c3dbc9;
+    background: var(--accent-light);
+  }
+
+  .summary-bar {
+    width: 100%;
+    max-width: 640px;
+    margin-top: 16px;
+    padding: 16px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .summary-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .summary-numbers {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--mono);
+  }
+
+  .running-total {
+    font-size: 20px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .running-total.match { color: var(--accent); }
+  .running-total.over { color: var(--error); }
+  .running-total.under { color: var(--text); }
+
+  .divider { color: var(--muted); font-size: 14px; }
+  .target-total { font-size: 14px; color: var(--muted); }
+
+  .progress-track {
+    width: 100%;
+    max-width: 640px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 0.3s ease, background 0.2s;
+    max-width: 100%;
+  }
+
+  .progress-fill.over { background: var(--error); }
+
+  .validation-msg {
+    width: 100%;
+    max-width: 640px;
+    margin-top: 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    min-height: 16px;
+    transition: color 0.2s;
+  }
+
+  .validation-msg.error { color: var(--error); }
+  .validation-msg.success { color: var(--accent); }
+
+  .submit-btn {
+    width: 100%;
+    max-width: 640px;
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .submit-btn:hover:not(:disabled) { opacity: 0.88; }
+  .submit-btn:active:not(:disabled) { transform: scale(0.99); }
+
+  .submit-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 60px 24px;
+  }
+
+  .success-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--accent-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .success-screen h2 {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .success-screen p {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 320px;
+    line-height: 1.6;
+  }
+
+  .error-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 60px 24px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 80px 24px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  #main-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
+</style>
+</head>
+<body>
+
+<div id="loading-screen" class="loading-screen" style="display:flex;">
+  <div class="loading-spinner"></div>
+  <span>Loading adjustment data...</span>
+</div>
+
+<div id="error-screen" class="error-screen">
+  <div style="font-size:32px;">⚠️</div>
+  <h2 style="font-size:20px;font-weight:400;">Unable to load data</h2>
+  <p id="error-msg" style="color:var(--muted);font-size:14px;max-width:320px;line-height:1.6;"></p>
+</div>
+
+<div id="main-content" style="display:none;">
+  <header>
+    <div class="wordmark">Sound Painting Solutions</div>
+    <h1>Split <span>scope adjustment</span><br>across jobs</h1>
+    <div class="total-badge">
+      <span class="label">Total to allocate</span>
+      <span class="amount" id="total-display">$0</span>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Jobs</h2>
+      <span class="job-count" id="job-count"></span>
+    </div>
+    <div class="job-list" id="job-list"></div>
+  </div>
+
+  <div class="summary-bar">
+    <span class="summary-label">Running total</span>
+    <div class="summary-numbers">
+      <span class="running-total under" id="running-total">$0</span>
+      <span class="divider">/</span>
+      <span class="target-total" id="target-display">$0</span>
+    </div>
+  </div>
+
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="validation-msg" id="validation-msg"></div>
+
+  <button class="submit-btn" id="submit-btn" disabled>Confirm split adjustment</button>
+</div>
+
+<div id="success-screen" class="success-screen">
+  <div class="success-icon">✓</div>
+  <h2>Adjustment confirmed</h2>
+  <p id="success-msg">The scope adjustment has been split and applied to each job in Smartsheet.</p>
+</div>
+
+<script>
+  // --- Parse URL params ---
+  const params = new URLSearchParams(window.location.search);
+  const dealId = params.get('deal_id');
+  const totalAdj = parseFloat(params.get('total')) || 0;
+  const messageTs = params.get('ts');
+  const channelId = params.get('channel') || 'C01ARRB6R0U';
+
+  // --- Storage by Zapier read endpoint ---
+  // Replace with your actual Zapier Storage read webhook URL
+  const STORAGE_READ_WEBHOOK = 'https://store.zapier.com/api/records?secret=YOUR_STORAGE_SECRET';
+  const SUBMIT_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/YOUR_SUBMIT_WEBHOOK/';
+
+  const fmt = (n) => '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+
+  let jobs = [];
+  let total = totalAdj;
+
+  async function loadJobs() {
+    try {
+      // Fetch from Storage by Zapier using deal_id as key
+      const res = await fetch(`${STORAGE_READ_WEBHOOK}&key=split_adj_${dealId}`);
+      if (!res.ok) throw new Error('Storage fetch failed');
+      const data = await res.json();
+      const payload = JSON.parse(data.value || '{}');
+      jobs = payload.jobs || [];
+      total = payload.total || totalAdj;
+      renderPage();
+    } catch (e) {
+      document.getElementById('loading-screen').style.display = 'none';
+      const errScreen = document.getElementById('error-screen');
+      errScreen.style.display = 'flex';
+      document.getElementById('error-msg').textContent =
+        'Could not load job data for this adjustment. Please close this page and use the Slack dropdown instead. (' + e.message + ')';
+    }
+  }
+
+  function renderPage() {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'flex';
+
+    document.getElementById('total-display').textContent = fmt(total);
+    document.getElementById('target-display').textContent = fmt(total);
+    document.getElementById('job-count').textContent = jobs.length + ' job' + (jobs.length !== 1 ? 's' : '');
+
+    const list = document.getElementById('job-list');
+    list.innerHTML = '';
+
+    jobs.forEach((job, i) => {
+      const value = JSON.parse(job.value || '{}');
+      const name = job.text?.text || value.job_number || 'Job ' + (i + 1);
+      const num = value.job_number || '';
+
+      const row = document.createElement('div');
+      row.className = 'job-row';
+      row.innerHTML = `
+        <div class="job-info">
+          <div class="job-name">${name}</div>
+          ${num ? `<div class="job-number">#${num}</div>` : ''}
+        </div>
+        <div class="amount-input-wrap">
+          <input
+            class="amount-input"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0"
+            data-index="${i}"
+            data-row-id="${value.row_id || ''}"
+            data-job-number="${num}"
+            data-hours="${value.hours || 0}"
+          />
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    // Attach listeners
+    list.querySelectorAll('.amount-input').forEach(input => {
+      input.addEventListener('input', updateRunningTotal);
+    });
+
+    updateRunningTotal();
+  }
+
+  function updateRunningTotal() {
+    const inputs = document.querySelectorAll('.amount-input');
+    let running = 0;
+    inputs.forEach(inp => {
+      const v = parseFloat(inp.value) || 0;
+      running += v;
+      if (v > 0) inp.classList.add('has-value');
+      else inp.classList.remove('has-value');
+    });
+
+    const runningEl = document.getElementById('running-total');
+    const progressEl = document.getElementById('progress-fill');
+    const validationEl = document.getElementById('validation-msg');
+    const submitBtn = document.getElementById('submit-btn');
+
+    runningEl.textContent = fmt(running);
+
+    const pct = total > 0 ? Math.min((running / total) * 100, 100) : 0;
+    progressEl.style.width = pct + '%';
+
+    const diff = Math.round((running - total) * 100) / 100;
+    const isMatch = diff === 0;
+    const isOver = diff > 0;
+
+    runningEl.className = 'running-total ' + (isMatch ? 'match' : isOver ? 'over' : 'under');
+    progressEl.className = 'progress-fill' + (isOver ? ' over' : '');
+
+    if (isMatch) {
+      validationEl.textContent = '✓ Amounts add up correctly';
+      validationEl.className = 'validation-msg success';
+      submitBtn.disabled = false;
+    } else if (isOver) {
+      validationEl.textContent = `Over by ${fmt(diff)} — reduce one or more amounts`;
+      validationEl.className = 'validation-msg error';
+      submitBtn.disabled = true;
+    } else {
+      validationEl.textContent = `${fmt(Math.abs(diff))} remaining to allocate`;
+      validationEl.className = 'validation-msg';
+      submitBtn.disabled = true;
+    }
+  }
+
+  async function submitSplit() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Submitting...';
+
+    const inputs = document.querySelectorAll('.amount-input');
+    const splits = [];
+    inputs.forEach(inp => {
+      splits.push({
+        row_id: inp.dataset.rowId,
+        job_number: inp.dataset.jobNumber,
+        amount: parseFloat(inp.value) || 0,
+        hours: parseFloat(inp.dataset.hours) || 0
+      });
+    });
+
+    const payload = {
+      deal_id: dealId,
+      total: total,
+      message_ts: messageTs,
+      channel_id: channelId,
+      splits: splits
+    };
+
+    try {
+      await fetch(SUBMIT_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      document.getElementById('main-content').style.display = 'none';
+      const successScreen = document.getElementById('success-screen');
+      successScreen.style.display = 'flex';
+      document.getElementById('success-msg').textContent =
+        `The $${total} adjustment has been split across ${splits.filter(s => s.amount > 0).length} jobs and applied in Smartsheet.`;
+
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Confirm split adjustment';
+      document.getElementById('validation-msg').textContent = 'Submission failed — please try again.';
+      document.getElementById('validation-msg').className = 'validation-msg error';
+    }
+  }
+
+  document.getElementById('submit-btn').addEventListener('click', submitSplit);
+
+  // --- Init ---
+  if (!dealId) {
+    document.getElementById('loading-screen').style.display = 'none';
+    const errScreen = document.getElementById('error-screen');
+    errScreen.style.display = 'flex';
+    document.getElementById('error-msg').textContent = 'No deal ID found in URL. Please access this page from the Slack message.';
+  } else {
+    loadJobs();
+  }
+</script>
+</body>
+</html>
+```
