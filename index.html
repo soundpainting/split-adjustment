@@ -15,9 +15,15 @@
     --muted: #8a847a;
     --accent: #2d5a3d;
     --accent-light: #eaf2ec;
+    --accent-border: #c3dbc9;
     --error: #c0392b;
     --error-light: #fdf0ef;
-    --success: #2d5a3d;
+    --hours-color: #1a5276;
+    --hours-light: #eaf0f6;
+    --hours-border: #aed6f1;
+    --materials-color: #7d6608;
+    --materials-light: #fefde7;
+    --materials-border: #f9e79f;
     --mono: 'DM Mono', monospace;
     --sans: 'DM Sans', sans-serif;
   }
@@ -37,7 +43,7 @@
 
   header {
     width: 100%;
-    max-width: 640px;
+    max-width: 800px;
     margin-bottom: 40px;
   }
 
@@ -55,80 +61,89 @@
     font-weight: 300;
     letter-spacing: -0.02em;
     line-height: 1.2;
-    color: var(--text);
   }
 
-  h1 span {
-    font-weight: 600;
+  h1 span { font-weight: 600; }
+
+  .badges {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
   }
 
-  .total-badge {
+  .badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--accent-light);
-    border: 1px solid #c3dbc9;
     border-radius: 6px;
     padding: 10px 16px;
-    margin-top: 20px;
     font-family: var(--mono);
     font-size: 13px;
+  }
+
+  .badge.dollars {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
     color: var(--accent);
   }
 
-  .total-badge .label {
-    color: var(--muted);
+  .badge.hours {
+    background: var(--hours-light);
+    border: 1px solid var(--hours-border);
+    color: var(--hours-color);
+  }
+
+  .badge .label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    opacity: 0.7;
   }
 
-  .total-badge .amount {
+  .badge .amount {
     font-size: 18px;
     font-weight: 500;
   }
 
   .card {
     width: 100%;
-    max-width: 640px;
+    max-width: 800px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
   }
 
-  .card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .table-header {
+    display: grid;
+    grid-template-columns: 1fr 130px 100px 130px;
+    gap: 12px;
+    padding: 14px 24px;
+    border-bottom: 2px solid var(--border);
+    background: #faf9f7;
   }
 
-  .card-header h2 {
-    font-size: 13px;
+  .table-header span {
+    font-size: 11px;
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted);
   }
 
-  .job-count {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
+  .table-header span.col-hours { color: var(--hours-color); }
+  .table-header span.col-materials { color: var(--materials-color); }
+  .table-header span.col-scope { color: var(--accent); }
 
-  .job-list {
-    padding: 8px 0;
-  }
+  .job-list { padding: 4px 0; }
 
   .job-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 130px 100px 130px;
+    gap: 12px;
     align-items: center;
-    gap: 16px;
-    padding: 14px 24px;
+    padding: 12px 24px;
     border-bottom: 1px solid var(--border);
     transition: background 0.15s;
   }
@@ -144,7 +159,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--text);
   }
 
   .job-number {
@@ -154,28 +168,28 @@
     margin-top: 2px;
   }
 
-  .amount-input-wrap {
+  .input-wrap {
     position: relative;
-    flex-shrink: 0;
   }
 
-  .amount-input-wrap::before {
-    content: '$';
+  .input-wrap.has-prefix::before {
     position: absolute;
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
     pointer-events: none;
   }
 
-  .amount-input {
+  .input-wrap.dollars-prefix::before { content: '$'; }
+
+  .field-input {
     font-family: var(--mono);
-    font-size: 14px;
-    width: 110px;
-    padding: 8px 10px 8px 22px;
+    font-size: 13px;
+    width: 100%;
+    padding: 8px 8px 8px 22px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--bg);
@@ -186,24 +200,51 @@
     -moz-appearance: textfield;
   }
 
-  .amount-input::-webkit-outer-spin-button,
-  .amount-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-  .amount-input:focus {
-    border-color: var(--accent);
-    background: var(--surface);
+  .field-input.hours-field {
+    padding: 8px;
+    text-align: right;
   }
 
-  .amount-input.has-value {
-    border-color: #c3dbc9;
+  .field-input::-webkit-outer-spin-button,
+  .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .field-input:focus { background: var(--surface); }
+
+  .field-input.scope-field:focus { border-color: var(--accent); }
+  .field-input.hours-field:focus { border-color: var(--hours-color); }
+  .field-input.materials-field:focus { border-color: var(--materials-color); }
+
+  .field-input.scope-field.has-value {
+    border-color: var(--accent-border);
     background: var(--accent-light);
   }
 
-  .summary-bar {
+  .field-input.hours-field.has-value {
+    border-color: var(--hours-border);
+    background: var(--hours-light);
+  }
+
+  .field-input.materials-field.has-value {
+    border-color: var(--materials-border);
+    background: var(--materials-light);
+  }
+
+  .field-input.error-field {
+    border-color: var(--error) !important;
+    background: var(--error-light) !important;
+  }
+
+  .summary-section {
     width: 100%;
-    max-width: 640px;
+    max-width: 800px;
     margin-top: 16px;
-    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .summary-bar {
+    padding: 14px 20px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -227,56 +268,65 @@
     font-family: var(--mono);
   }
 
-  .running-total {
+  .running-val {
     font-size: 20px;
     font-weight: 500;
     transition: color 0.2s;
   }
 
-  .running-total.match { color: var(--accent); }
-  .running-total.over { color: var(--error); }
-  .running-total.under { color: var(--text); }
+  .running-val.match { color: var(--accent); }
+  .running-val.over { color: var(--error); }
+  .running-val.under { color: var(--text); }
+
+  .running-val.hours-match { color: var(--hours-color); }
 
   .divider { color: var(--muted); font-size: 14px; }
-  .target-total { font-size: 14px; color: var(--muted); }
+  .target-val { font-size: 14px; color: var(--muted); }
 
   .progress-track {
     width: 100%;
-    max-width: 640px;
     height: 3px;
     background: var(--border);
     border-radius: 2px;
-    margin-top: 8px;
+    margin-top: 6px;
     overflow: hidden;
   }
 
   .progress-fill {
     height: 100%;
     border-radius: 2px;
-    background: var(--accent);
     transition: width 0.3s ease, background 0.2s;
     max-width: 100%;
   }
 
+  .progress-fill.dollars-fill { background: var(--accent); }
+  .progress-fill.hours-fill { background: var(--hours-color); }
   .progress-fill.over { background: var(--error); }
 
-  .validation-msg {
+  .validation-msgs {
     width: 100%;
-    max-width: 640px;
-    margin-top: 10px;
+    max-width: 800px;
+    margin-top: 4px;
+    min-height: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .validation-msg {
     font-size: 12px;
     font-family: var(--mono);
-    min-height: 16px;
     transition: color 0.2s;
   }
 
   .validation-msg.error { color: var(--error); }
   .validation-msg.success { color: var(--accent); }
+  .validation-msg.info { color: var(--muted); }
 
   .submit-btn {
     width: 100%;
-    max-width: 640px;
-    margin-top: 24px;
+    max-width: 800px;
+    margin-top: 20px;
     padding: 16px;
     background: var(--accent);
     color: #fff;
@@ -285,18 +335,13 @@
     font-family: var(--sans);
     font-size: 15px;
     font-weight: 500;
-    letter-spacing: 0.01em;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.1s;
   }
 
   .submit-btn:hover:not(:disabled) { opacity: 0.88; }
   .submit-btn:active:not(:disabled) { transform: scale(0.99); }
-
-  .submit-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
+  .submit-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .success-screen {
     display: none;
@@ -318,22 +363,11 @@
     font-size: 24px;
   }
 
-  .success-screen h2 {
-    font-size: 22px;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-  }
-
-  .success-screen p {
-    font-size: 14px;
-    color: var(--muted);
-    max-width: 320px;
-    line-height: 1.6;
-  }
+  .success-screen h2 { font-size: 22px; font-weight: 400; }
+  .success-screen p { font-size: 14px; color: var(--muted); max-width: 340px; line-height: 1.6; }
 
   .spinner {
-    width: 20px;
-    height: 20px;
+    width: 18px; height: 18px;
     border: 2px solid rgba(255,255,255,0.3);
     border-top-color: #fff;
     border-radius: 50%;
@@ -346,7 +380,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .loading-screen {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
@@ -356,62 +390,107 @@
   }
 
   .loading-spinner {
-    width: 32px;
-    height: 32px;
+    width: 32px; height: 32px;
     border: 2px solid var(--border);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
   }
 
-  #main-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .error-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 60px 24px;
+  }
+
+  #main-content {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media (max-width: 600px) {
+    .table-header,
+    .job-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .table-header span:first-child { display: none; }
+    .job-row { padding: 16px; }
+    .field-input { width: 100%; }
+  }
 </style>
 </head>
 <body>
 
-<div id="loading-screen" class="loading-screen" style="display:flex;">
+<div id="loading-screen" class="loading-screen">
   <div class="loading-spinner"></div>
   <span>Loading adjustment data...</span>
 </div>
 
-<div id="error-screen" class="error-screen" style="display:none;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:60px 24px;">
+<div id="error-screen" class="error-screen">
   <div style="font-size:32px;">⚠️</div>
   <h2 style="font-size:20px;font-weight:400;">Unable to load data</h2>
   <p id="error-msg" style="color:var(--muted);font-size:14px;max-width:320px;line-height:1.6;"></p>
 </div>
 
-<div id="main-content" style="display:none;">
+<div id="main-content">
   <header>
     <div class="wordmark">Sound Painting Solutions</div>
     <h1>Split <span>scope adjustment</span><br>across jobs</h1>
-    <div class="total-badge">
-      <span class="label">Total to allocate</span>
-      <span class="amount" id="total-display">$0</span>
+    <div class="badges">
+      <div class="badge dollars">
+        <span class="label">$ to allocate</span>
+        <span class="amount" id="total-display">$0</span>
+      </div>
+      <div class="badge hours" id="hours-badge" style="display:none;">
+        <span class="label">hrs to allocate</span>
+        <span class="amount" id="hours-display">0</span>
+      </div>
     </div>
   </header>
 
   <div class="card">
-    <div class="card-header">
-      <h2>Jobs</h2>
-      <span class="job-count" id="job-count"></span>
+    <div class="table-header">
+      <span>Job</span>
+      <span class="col-scope">Scope Adj $</span>
+      <span class="col-hours">Hours</span>
+      <span class="col-materials">Materials $</span>
     </div>
     <div class="job-list" id="job-list"></div>
   </div>
 
-  <div class="summary-bar">
-    <span class="summary-label">Running total</span>
-    <div class="summary-numbers">
-      <span class="running-total under" id="running-total">$0</span>
-      <span class="divider">/</span>
-      <span class="target-total" id="target-display">$0</span>
+  <div class="summary-section">
+    <div class="summary-bar">
+      <span class="summary-label">Dollar total</span>
+      <div class="summary-numbers">
+        <span class="running-val under" id="running-dollars">$0</span>
+        <span class="divider">/</span>
+        <span class="target-val" id="target-dollars">$0</span>
+      </div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill dollars-fill" id="progress-dollars" style="width:0%"></div>
+    </div>
+
+    <div class="summary-bar" id="hours-summary" style="display:none;">
+      <span class="summary-label">Hours total</span>
+      <div class="summary-numbers">
+        <span class="running-val under" id="running-hours">0</span>
+        <span class="divider">/</span>
+        <span class="target-val" id="target-hours">0</span>
+      </div>
+    </div>
+    <div class="progress-track" id="hours-progress-track" style="display:none;">
+      <div class="progress-fill hours-fill" id="progress-hours" style="width:0%"></div>
     </div>
   </div>
 
-  <div class="progress-track">
-    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-  </div>
-
-  <div class="validation-msg" id="validation-msg"></div>
+  <div class="validation-msgs" id="validation-msgs"></div>
 
   <button class="submit-btn" id="submit-btn" disabled>Confirm split adjustment</button>
 </div>
@@ -419,7 +498,7 @@
 <div id="success-screen" class="success-screen">
   <div class="success-icon">✓</div>
   <h2>Adjustment confirmed</h2>
-  <p id="success-msg">The scope adjustment has been split and applied to each job in Smartsheet.</p>
+  <p id="success-msg"></p>
 </div>
 
 <script>
@@ -432,10 +511,14 @@
   const STORAGE_SECRET = '02be0bd8-c911-83ad-8f23-f7a169a94dbf';
   const SUBMIT_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/599637/4om1y20/';
 
-  const fmt = (n) => '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  const fmtDollars = (n) => '$' + parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  const fmtHours = (n) => parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' hrs';
+  const round2 = (n) => Math.round(n * 100) / 100;
+  const round1 = (n) => Math.round(n * 10) / 10;
 
   let jobs = [];
   let total = totalAdj;
+  let totalHours = 0;
 
   async function loadJobs() {
     try {
@@ -446,14 +529,15 @@
       const data = await res.json();
       const payload = JSON.parse(data.value || '{}');
       jobs = payload.jobs || [];
-      total = payload.total || totalAdj;
+      total = parseFloat(payload.total) || totalAdj;
+      totalHours = parseFloat(payload.total_hours) || 0;
       renderPage();
     } catch (e) {
       document.getElementById('loading-screen').style.display = 'none';
       const errScreen = document.getElementById('error-screen');
       errScreen.style.display = 'flex';
       document.getElementById('error-msg').textContent =
-        'Could not load job data for this adjustment. Please close this page and use the Slack dropdown instead. (' + e.message + ')';
+        'Could not load job data. Please close this page and use the Slack dropdown instead. (' + e.message + ')';
     }
   }
 
@@ -461,17 +545,29 @@
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('main-content').style.display = 'flex';
 
-    document.getElementById('total-display').textContent = fmt(total);
-    document.getElementById('target-display').textContent = fmt(total);
-    document.getElementById('job-count').textContent = jobs.length + ' job' + (jobs.length !== 1 ? 's' : '');
+    document.getElementById('total-display').textContent = fmtDollars(total);
+    document.getElementById('target-dollars').textContent = fmtDollars(total);
+
+    if (totalHours !== 0) {
+      document.getElementById('hours-badge').style.display = 'inline-flex';
+      document.getElementById('hours-display').textContent = fmtHours(totalHours);
+      document.getElementById('hours-summary').style.display = 'flex';
+      document.getElementById('hours-progress-track').style.display = 'block';
+      document.getElementById('target-hours').textContent = fmtHours(totalHours);
+    }
+
+    document.getElementById('job-count') && (document.getElementById('job-count').textContent =
+      jobs.length + ' job' + (jobs.length !== 1 ? 's' : ''));
 
     const list = document.getElementById('job-list');
     list.innerHTML = '';
 
     jobs.forEach((job, i) => {
-      const value = JSON.parse(job.value || '{}');
+      let value = {};
+      try { value = JSON.parse(job.value || '{}'); } catch(e) {}
       const name = job.text?.text || value.job_number || 'Job ' + (i + 1);
       const num = value.job_number || '';
+      const rowId = value.row_id || '';
 
       const row = document.createElement('div');
       row.className = 'job-row';
@@ -480,70 +576,134 @@
           <div class="job-name">${name}</div>
           ${num ? `<div class="job-number">#${num}</div>` : ''}
         </div>
-        <div class="amount-input-wrap">
-          <input
-            class="amount-input"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="0"
-            data-index="${i}"
-            data-row-id="${value.row_id || ''}"
-            data-job-number="${num}"
-            data-hours="${value.hours || 0}"
-          />
+        <div class="input-wrap has-prefix dollars-prefix">
+          <input class="field-input scope-field" type="number" step="0.01" min="0" placeholder="0"
+            data-row-id="${rowId}" data-job-number="${num}" data-type="scope" data-index="${i}" />
+        </div>
+        <div class="input-wrap">
+          <input class="field-input hours-field" type="number" step="0.5" min="0" placeholder="0"
+            data-type="hours" data-index="${i}" ${totalHours === 0 ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} />
+        </div>
+        <div class="input-wrap has-prefix dollars-prefix">
+          <input class="field-input materials-field" type="number" step="0.01" min="0" placeholder="0"
+            data-type="materials" data-index="${i}" />
         </div>
       `;
       list.appendChild(row);
     });
 
-    list.querySelectorAll('.amount-input').forEach(input => {
-      input.addEventListener('input', updateRunningTotal);
+    list.querySelectorAll('.field-input').forEach(input => {
+      input.addEventListener('input', () => {
+        updateFieldStyle(input);
+        validate();
+      });
     });
 
-    updateRunningTotal();
+    validate();
   }
 
-  function updateRunningTotal() {
-    const inputs = document.querySelectorAll('.amount-input');
-    let running = 0;
-    inputs.forEach(inp => {
-      const v = parseFloat(inp.value) || 0;
-      running += v;
-      if (v > 0) inp.classList.add('has-value');
-      else inp.classList.remove('has-value');
+  function updateFieldStyle(input) {
+    const v = parseFloat(input.value) || 0;
+    if (v > 0) input.classList.add('has-value');
+    else input.classList.remove('has-value');
+    input.classList.remove('error-field');
+  }
+
+  function getValues() {
+    const rows = document.querySelectorAll('.job-row');
+    const result = [];
+    rows.forEach((row, i) => {
+      const scope = parseFloat(row.querySelector('.scope-field').value) || 0;
+      const hours = parseFloat(row.querySelector('.hours-field').value) || 0;
+      const materials = parseFloat(row.querySelector('.materials-field').value) || 0;
+      const rowId = row.querySelector('.scope-field').dataset.rowId;
+      const jobNumber = row.querySelector('.scope-field').dataset.jobNumber;
+      result.push({ scope, hours, materials, rowId, jobNumber, scopeEl: row.querySelector('.scope-field'), hoursEl: row.querySelector('.hours-field'), materialsEl: row.querySelector('.materials-field') });
+    });
+    return result;
+  }
+
+  function validate() {
+    const rows = getValues();
+    const msgs = [];
+    let valid = true;
+
+    // Clear error states
+    rows.forEach(r => {
+      r.scopeEl.classList.remove('error-field');
+      r.hoursEl.classList.remove('error-field');
+      r.materialsEl.classList.remove('error-field');
     });
 
-    const runningEl = document.getElementById('running-total');
-    const progressEl = document.getElementById('progress-fill');
-    const validationEl = document.getElementById('validation-msg');
-    const submitBtn = document.getElementById('submit-btn');
+    // Dollar totals
+    const totalScope = round2(rows.reduce((s, r) => s + r.scope, 0));
+    const totalMaterials = round2(rows.reduce((s, r) => s + r.materials, 0));
+    const totalDollars = round2(totalScope + totalMaterials);
+    const dollarDiff = round2(totalDollars - total);
 
-    runningEl.textContent = fmt(running);
+    // Hours total
+    const totalHrsEntered = round1(rows.reduce((s, r) => s + r.hours, 0));
+    const hoursDiff = round1(totalHrsEntered - totalHours);
 
-    const pct = total > 0 ? Math.min((running / total) * 100, 100) : 0;
-    progressEl.style.width = pct + '%';
+    // Update dollar progress
+    const dollarPct = total > 0 ? Math.min((totalDollars / total) * 100, 100) : 0;
+    document.getElementById('running-dollars').textContent = fmtDollars(totalDollars);
+    document.getElementById('progress-dollars').style.width = dollarPct + '%';
 
-    const diff = Math.round((running - total) * 100) / 100;
-    const isMatch = diff === 0;
-    const isOver = diff > 0;
+    const dollarMatch = dollarDiff === 0;
+    const dollarOver = dollarDiff > 0;
+    document.getElementById('running-dollars').className = 'running-val ' + (dollarMatch ? 'match' : dollarOver ? 'over' : 'under');
+    document.getElementById('progress-dollars').className = 'progress-fill dollars-fill' + (dollarOver ? ' over' : '');
 
-    runningEl.className = 'running-total ' + (isMatch ? 'match' : isOver ? 'over' : 'under');
-    progressEl.className = 'progress-fill' + (isOver ? ' over' : '');
-
-    if (isMatch) {
-      validationEl.textContent = '✓ Amounts add up correctly';
-      validationEl.className = 'validation-msg success';
-      submitBtn.disabled = false;
-    } else if (isOver) {
-      validationEl.textContent = `Over by ${fmt(diff)} — reduce one or more amounts`;
-      validationEl.className = 'validation-msg error';
-      submitBtn.disabled = true;
+    if (!dollarMatch) {
+      valid = false;
+      if (dollarOver) msgs.push({ text: `Over by ${fmtDollars(dollarDiff)} — reduce one or more amounts`, cls: 'error' });
+      else msgs.push({ text: `${fmtDollars(Math.abs(dollarDiff))} remaining to allocate`, cls: 'info' });
     } else {
-      validationEl.textContent = `${fmt(Math.abs(diff))} remaining to allocate`;
-      validationEl.className = 'validation-msg';
-      submitBtn.disabled = true;
+      msgs.push({ text: '✓ Dollar total matches', cls: 'success' });
     }
+
+    // Update hours progress
+    if (totalHours !== 0) {
+      const hoursPct = totalHours > 0 ? Math.min((totalHrsEntered / totalHours) * 100, 100) : 0;
+      document.getElementById('running-hours').textContent = fmtHours(totalHrsEntered);
+      document.getElementById('progress-hours').style.width = hoursPct + '%';
+
+      const hoursMatch = hoursDiff === 0;
+      const hoursOver = hoursDiff > 0;
+      document.getElementById('running-hours').className = 'running-val ' + (hoursMatch ? 'hours-match' : hoursOver ? 'over' : 'under');
+      document.getElementById('progress-hours').className = 'progress-fill hours-fill' + (hoursOver ? ' over' : '');
+
+      if (!hoursMatch) {
+        valid = false;
+        if (hoursOver) msgs.push({ text: `Hours over by ${Math.abs(hoursDiff)} — reduce hours`, cls: 'error' });
+        else msgs.push({ text: `${Math.abs(hoursDiff)} hrs remaining to allocate`, cls: 'info' });
+      } else {
+        msgs.push({ text: '✓ Hours total matches', cls: 'success' });
+      }
+    }
+
+    // Per-row validation: hours > 0 requires scope > 0
+    rows.forEach(r => {
+      if (r.hours > 0 && r.scope === 0) {
+        r.hoursEl.classList.add('error-field');
+        r.scopeEl.classList.add('error-field');
+        msgs.push({ text: `Hours entered without scope adj $ on job #${r.jobNumber}`, cls: 'error' });
+        valid = false;
+      }
+    });
+
+    // Render messages
+    const container = document.getElementById('validation-msgs');
+    container.innerHTML = '';
+    msgs.forEach(m => {
+      const el = document.createElement('div');
+      el.className = 'validation-msg ' + m.cls;
+      el.textContent = m.text;
+      container.appendChild(el);
+    });
+
+    document.getElementById('submit-btn').disabled = !valid;
   }
 
   async function submitSplit() {
@@ -551,20 +711,19 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Submitting...';
 
-    const inputs = document.querySelectorAll('.amount-input');
-    const splits = [];
-    inputs.forEach(inp => {
-      splits.push({
-        row_id: inp.dataset.rowId,
-        job_number: inp.dataset.jobNumber,
-        amount: parseFloat(inp.value) || 0,
-        hours: parseFloat(inp.dataset.hours) || 0
-      });
-    });
+    const rows = getValues();
+    const splits = rows.map(r => ({
+      row_id: r.rowId,
+      job_number: r.jobNumber,
+      scope_adj: r.scope,
+      hours: r.hours,
+      materials: r.materials
+    }));
 
     const payload = {
       deal_id: dealId,
       total: total,
+      total_hours: totalHours,
       message_ts: messageTs,
       channel_id: channelId,
       splits: splits
@@ -580,14 +739,18 @@
       document.getElementById('main-content').style.display = 'none';
       const successScreen = document.getElementById('success-screen');
       successScreen.style.display = 'flex';
+      const activeSplits = splits.filter(s => s.scope_adj > 0 || s.materials > 0);
       document.getElementById('success-msg').textContent =
-        `The ${fmt(total)} adjustment has been split across ${splits.filter(s => s.amount > 0).length} jobs and applied in Smartsheet.`;
+        `The ${fmtDollars(total)} adjustment has been split across ${activeSplits.length} job${activeSplits.length !== 1 ? 's' : ''} and is being applied in Smartsheet.`;
 
     } catch (e) {
       btn.disabled = false;
       btn.textContent = 'Confirm split adjustment';
-      document.getElementById('validation-msg').textContent = 'Submission failed — please try again.';
-      document.getElementById('validation-msg').className = 'validation-msg error';
+      const container = document.getElementById('validation-msgs');
+      const el = document.createElement('div');
+      el.className = 'validation-msg error';
+      el.textContent = 'Submission failed — please try again.';
+      container.appendChild(el);
     }
   }
 
@@ -595,8 +758,7 @@
 
   if (!dealId) {
     document.getElementById('loading-screen').style.display = 'none';
-    const errScreen = document.getElementById('error-screen');
-    errScreen.style.display = 'flex';
+    document.getElementById('error-screen').style.display = 'flex';
     document.getElementById('error-msg').textContent = 'No deal ID found in URL. Please access this page from the Slack message.';
   } else {
     loadJobs();
