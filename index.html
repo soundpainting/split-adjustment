@@ -209,7 +209,6 @@
   .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
   .field-input:focus { background: var(--surface); }
-
   .field-input.scope-field:focus { border-color: var(--accent); }
   .field-input.hours-field:focus { border-color: var(--hours-color); }
   .field-input.materials-field:focus { border-color: var(--materials-color); }
@@ -277,7 +276,6 @@
   .running-val.match { color: var(--accent); }
   .running-val.over { color: var(--error); }
   .running-val.under { color: var(--text); }
-
   .running-val.hours-match { color: var(--hours-color); }
 
   .divider { color: var(--muted); font-size: 14px; }
@@ -414,8 +412,7 @@
   }
 
   @media (max-width: 600px) {
-    .table-header,
-    .job-row {
+    .table-header, .job-row {
       grid-template-columns: 1fr;
       gap: 8px;
     }
@@ -491,7 +488,6 @@
   </div>
 
   <div class="validation-msgs" id="validation-msgs"></div>
-
   <button class="submit-btn" id="submit-btn" disabled>Confirm split adjustment</button>
 </div>
 
@@ -508,13 +504,12 @@
   const messageTs = params.get('ts');
   const channelId = params.get('channel') || 'C01ARRB6R0U';
 
-  const STORAGE_SECRET = '02be0bd8-c911-83ad-8f23-f7a169a94dbf';
+  const PROXY_URL = 'https://split-adjustment-proxy.webmaster-357.workers.dev';
   const SUBMIT_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/599637/4om1y20/';
 
   const fmtDollars = (n) => '$' + parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
   const fmtHours = (n) => parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' hrs';
   const round2 = (n) => Math.round(n * 100) / 100;
-  const round1 = (n) => Math.round(n * 10) / 10;
 
   let jobs = [];
   let total = totalAdj;
@@ -522,10 +517,8 @@
 
   async function loadJobs() {
     try {
-      const res = await fetch(
-        `https://store.zapier.com/api/records?secret=${STORAGE_SECRET}&key=split_adj_${dealId}`
-      );
-      if (!res.ok) throw new Error('Storage fetch failed');
+      const res = await fetch(`${PROXY_URL}/?deal_id=${dealId}`);
+      if (!res.ok) throw new Error('Proxy fetch failed');
       const data = await res.json();
       const payload = JSON.parse(data.value || '{}');
       jobs = payload.jobs || [];
@@ -534,8 +527,7 @@
       renderPage();
     } catch (e) {
       document.getElementById('loading-screen').style.display = 'none';
-      const errScreen = document.getElementById('error-screen');
-      errScreen.style.display = 'flex';
+      document.getElementById('error-screen').style.display = 'flex';
       document.getElementById('error-msg').textContent =
         'Could not load job data. Please close this page and use the Slack dropdown instead. (' + e.message + ')';
     }
@@ -555,9 +547,6 @@
       document.getElementById('hours-progress-track').style.display = 'block';
       document.getElementById('target-hours').textContent = fmtHours(totalHours);
     }
-
-    document.getElementById('job-count') && (document.getElementById('job-count').textContent =
-      jobs.length + ' job' + (jobs.length !== 1 ? 's' : ''));
 
     const list = document.getElementById('job-list');
     list.innerHTML = '';
@@ -612,13 +601,18 @@
   function getValues() {
     const rows = document.querySelectorAll('.job-row');
     const result = [];
-    rows.forEach((row, i) => {
+    rows.forEach((row) => {
       const scope = parseFloat(row.querySelector('.scope-field').value) || 0;
       const hours = parseFloat(row.querySelector('.hours-field').value) || 0;
       const materials = parseFloat(row.querySelector('.materials-field').value) || 0;
       const rowId = row.querySelector('.scope-field').dataset.rowId;
       const jobNumber = row.querySelector('.scope-field').dataset.jobNumber;
-      result.push({ scope, hours, materials, rowId, jobNumber, scopeEl: row.querySelector('.scope-field'), hoursEl: row.querySelector('.hours-field'), materialsEl: row.querySelector('.materials-field') });
+      result.push({
+        scope, hours, materials, rowId, jobNumber,
+        scopeEl: row.querySelector('.scope-field'),
+        hoursEl: row.querySelector('.hours-field'),
+        materialsEl: row.querySelector('.materials-field')
+      });
     });
     return result;
   }
@@ -628,24 +622,20 @@
     const msgs = [];
     let valid = true;
 
-    // Clear error states
     rows.forEach(r => {
       r.scopeEl.classList.remove('error-field');
       r.hoursEl.classList.remove('error-field');
       r.materialsEl.classList.remove('error-field');
     });
 
-    // Dollar totals
     const totalScope = round2(rows.reduce((s, r) => s + r.scope, 0));
     const totalMaterials = round2(rows.reduce((s, r) => s + r.materials, 0));
     const totalDollars = round2(totalScope + totalMaterials);
     const dollarDiff = round2(totalDollars - total);
 
-    // Hours total
-    const totalHrsEntered = round1(rows.reduce((s, r) => s + r.hours, 0));
-    const hoursDiff = round1(totalHrsEntered - totalHours);
+    const totalHrsEntered = Math.round(rows.reduce((s, r) => s + r.hours, 0) * 10) / 10;
+    const hoursDiff = Math.round((totalHrsEntered - totalHours) * 10) / 10;
 
-    // Update dollar progress
     const dollarPct = total > 0 ? Math.min((totalDollars / total) * 100, 100) : 0;
     document.getElementById('running-dollars').textContent = fmtDollars(totalDollars);
     document.getElementById('progress-dollars').style.width = dollarPct + '%';
@@ -663,7 +653,6 @@
       msgs.push({ text: '✓ Dollar total matches', cls: 'success' });
     }
 
-    // Update hours progress
     if (totalHours !== 0) {
       const hoursPct = totalHours > 0 ? Math.min((totalHrsEntered / totalHours) * 100, 100) : 0;
       document.getElementById('running-hours').textContent = fmtHours(totalHrsEntered);
@@ -683,7 +672,6 @@
       }
     }
 
-    // Per-row validation: hours > 0 requires scope > 0
     rows.forEach(r => {
       if (r.hours > 0 && r.scope === 0) {
         r.hoursEl.classList.add('error-field');
@@ -693,7 +681,6 @@
       }
     });
 
-    // Render messages
     const container = document.getElementById('validation-msgs');
     container.innerHTML = '';
     msgs.forEach(m => {
@@ -737,8 +724,7 @@
       });
 
       document.getElementById('main-content').style.display = 'none';
-      const successScreen = document.getElementById('success-screen');
-      successScreen.style.display = 'flex';
+      document.getElementById('success-screen').style.display = 'flex';
       const activeSplits = splits.filter(s => s.scope_adj > 0 || s.materials > 0);
       document.getElementById('success-msg').textContent =
         `The ${fmtDollars(total)} adjustment has been split across ${activeSplits.length} job${activeSplits.length !== 1 ? 's' : ''} and is being applied in Smartsheet.`;
