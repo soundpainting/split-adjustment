@@ -491,9 +491,10 @@
       total = parseFloat(payload.total) || totalAdj;
       totalHours = parseFloat(payload.total_hours) || 0;
 
-      // Get message_ts from Storage payload (overrides URL param if present)
+  // Get message_ts from Storage payload (overrides URL param if present)
       if (payload.message_ts) {
         messageTs = payload.message_ts;
+        alert('set messageTs to: ' + messageTs);
       }
       if (payload.channel_id) {
         channelId = payload.channel_id;
