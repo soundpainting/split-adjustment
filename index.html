@@ -494,7 +494,6 @@
   // Get message_ts from Storage payload (overrides URL param if present)
       if (payload.message_ts) {
         messageTs = payload.message_ts;
-        alert('set messageTs to: ' + messageTs);
       }
       if (payload.channel_id) {
         channelId = payload.channel_id;
@@ -693,7 +692,6 @@
     };
 
 try {
-      alert('Submitting: ' + JSON.stringify(payload));
       await fetch(SUBMIT_WEBHOOK, {
         method: 'POST',
         mode: 'no-cors',
