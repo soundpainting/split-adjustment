@@ -168,9 +168,7 @@
     margin-top: 2px;
   }
 
-  .input-wrap {
-    position: relative;
-  }
+  .input-wrap { position: relative; }
 
   .input-wrap.has-prefix::before {
     position: absolute;
@@ -200,10 +198,7 @@
     -moz-appearance: textfield;
   }
 
-  .field-input.hours-field {
-    padding: 8px;
-    text-align: right;
-  }
+  .field-input.hours-field { padding: 8px; text-align: right; }
 
   .field-input::-webkit-outer-spin-button,
   .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -213,25 +208,10 @@
   .field-input.hours-field:focus { border-color: var(--hours-color); }
   .field-input.materials-field:focus { border-color: var(--materials-color); }
 
-  .field-input.scope-field.has-value {
-    border-color: var(--accent-border);
-    background: var(--accent-light);
-  }
-
-  .field-input.hours-field.has-value {
-    border-color: var(--hours-border);
-    background: var(--hours-light);
-  }
-
-  .field-input.materials-field.has-value {
-    border-color: var(--materials-border);
-    background: var(--materials-light);
-  }
-
-  .field-input.error-field {
-    border-color: var(--error) !important;
-    background: var(--error-light) !important;
-  }
+  .field-input.scope-field.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+  .field-input.hours-field.has-value { border-color: var(--hours-border); background: var(--hours-light); }
+  .field-input.materials-field.has-value { border-color: var(--materials-border); background: var(--materials-light); }
+  .field-input.error-field { border-color: var(--error) !important; background: var(--error-light) !important; }
 
   .summary-section {
     width: 100%;
@@ -267,12 +247,7 @@
     font-family: var(--mono);
   }
 
-  .running-val {
-    font-size: 20px;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-
+  .running-val { font-size: 20px; font-weight: 500; transition: color 0.2s; }
   .running-val.match { color: var(--accent); }
   .running-val.over { color: var(--error); }
   .running-val.under { color: var(--text); }
@@ -311,12 +286,7 @@
     gap: 4px;
   }
 
-  .validation-msg {
-    font-size: 12px;
-    font-family: var(--mono);
-    transition: color 0.2s;
-  }
-
+  .validation-msg { font-size: 12px; font-family: var(--mono); transition: color 0.2s; }
   .validation-msg.error { color: var(--error); }
   .validation-msg.success { color: var(--accent); }
   .validation-msg.info { color: var(--muted); }
@@ -351,8 +321,7 @@
   }
 
   .success-icon {
-    width: 56px;
-    height: 56px;
+    width: 56px; height: 56px;
     background: var(--accent-light);
     border-radius: 50%;
     display: flex;
@@ -412,10 +381,7 @@
   }
 
   @media (max-width: 600px) {
-    .table-header, .job-row {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
+    .table-header, .job-row { grid-template-columns: 1fr; gap: 8px; }
     .table-header span:first-child { display: none; }
     .job-row { padding: 16px; }
     .field-input { width: 100%; }
@@ -501,8 +467,8 @@
   const params = new URLSearchParams(window.location.search);
   const dealId = params.get('deal_id');
   const totalAdj = parseFloat(params.get('total')) || 0;
-  const messageTs = params.get('ts');
-  const channelId = params.get('channel') || 'C01ARRB6R0U';
+  let messageTs = params.get('ts') || '';
+  let channelId = params.get('channel') || 'C01ARRB6R0U';
 
   const PROXY_URL = 'https://split-adjustment-proxy.webmaster-357.workers.dev';
   const SUBMIT_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/599637/4om1y20/';
@@ -524,6 +490,15 @@
       jobs = payload.jobs || [];
       total = parseFloat(payload.total) || totalAdj;
       totalHours = parseFloat(payload.total_hours) || 0;
+
+      // Get message_ts from Storage payload (overrides URL param if present)
+      if (payload.message_ts) {
+        messageTs = payload.message_ts;
+      }
+      if (payload.channel_id) {
+        channelId = payload.channel_id;
+      }
+
       renderPage();
     } catch (e) {
       document.getElementById('loading-screen').style.display = 'none';
