@@ -692,7 +692,8 @@
       splits: splits
     };
 
-    try {
+try {
+      alert('Submitting: ' + JSON.stringify(payload));
       await fetch(SUBMIT_WEBHOOK, {
         method: 'POST',
         mode: 'no-cors',
