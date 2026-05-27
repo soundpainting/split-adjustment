@@ -353,7 +353,7 @@
     font-size: 24px;
   }
 
-  .already-submitted-screen h2 { font-size: 22px; font-weight: 400; }
+  .already-submitted-screen h2 { font-size: 22px; font-weight: 400; color: var(--text); }
   .already-submitted-screen p { font-size: 14px; color: var(--muted); max-width: 340px; line-height: 1.6; }
 
   .spinner {
@@ -427,7 +427,7 @@
 <div id="already-submitted-screen" class="already-submitted-screen">
   <div class="already-submitted-icon">⚠️</div>
   <h2>Already submitted</h2>
-  <p>This adjustment has already been submitted. If you believe this is an error, please contact your administrator.</p>
+  <p>This adjustment has already been confirmed. If you believe this is an error, please contact your administrator.</p>
 </div>
 
 <div id="main-content">
@@ -500,11 +500,6 @@
   let channelId = params.get('channel') || 'C01ARRB6R0U';
 
   const PROXY_URL = 'https://split-adjustment-proxy.webmaster-357.workers.dev';
-  const SUBMIT_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/599637/4om1y20/';
-
-  // Submission flag
-  let submitted = false;
-  const submissionKey = `split_submitted_${dealId}`;
 
   const fmtDollars = (n) => '$' + parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
   const fmtHours = (n) => parseFloat(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' hrs';
@@ -513,12 +508,9 @@
   let jobs = [];
   let total = totalAdj;
   let totalHours = 0;
+  let submitted = false;
 
-  // Check if already submitted
-  if (sessionStorage.getItem(submissionKey) === 'true') {
-    document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('already-submitted-screen').style.display = 'flex';
-  } else if (!dealId) {
+  if (!dealId) {
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('error-screen').style.display = 'flex';
     document.getElementById('error-msg').textContent = 'No deal ID found in URL. Please access this page from the Slack message.';
@@ -536,11 +528,16 @@
       total = parseFloat(payload.total) || totalAdj;
       totalHours = parseFloat(payload.total_hours) || 0;
 
-      if (payload.message_ts) {
-        messageTs = payload.message_ts;
-      }
-      if (payload.channel_id) {
-        channelId = payload.channel_id;
+      if (payload.message_ts) messageTs = payload.message_ts;
+      if (payload.channel_id) channelId = payload.channel_id;
+
+      // Check if already submitted via KV
+      const lockRes = await fetch(`${PROXY_URL}/check?ts=${encodeURIComponent(messageTs)}`);
+      const lockData = await lockRes.json();
+      if (lockData.submitted) {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('already-submitted-screen').style.display = 'flex';
+        return;
       }
 
       renderPage();
@@ -739,14 +736,19 @@
     };
 
     try {
-      await fetch(SUBMIT_WEBHOOK, {
+      const res = await fetch(PROXY_URL, {
         method: 'POST',
-        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      // Mark as submitted in session storage
-      sessionStorage.setItem(submissionKey, 'true');
+      const data = await res.json();
+
+      if (res.status === 409 || data.error === 'already_submitted') {
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('already-submitted-screen').style.display = 'flex';
+        return;
+      }
 
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('success-screen').style.display = 'flex';
