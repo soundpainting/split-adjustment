@@ -520,8 +520,8 @@
 
   async function loadJobs() {
     try {
-      const res = await fetch(`${PROXY_URL}/?deal_id=${dealId}`);
-      if (!res.ok) throw new Error('Proxy fetch failed');
+      const adjId = params.get('adj_id');
+      const res = await fetch(`${PROXY_URL}/?deal_id=${dealId}&adj_id=${adjId}`);      if (!res.ok) throw new Error('Proxy fetch failed');
       const data = await res.json();
       const payload = JSON.parse(data.value || '{}');
       jobs = payload.jobs || [];
