@@ -495,6 +495,7 @@
 <script>
   const params = new URLSearchParams(window.location.search);
   const dealId = params.get('deal_id');
+  const adjId = params.get('adj_id');
   const totalAdj = parseFloat(params.get('total')) || 0;
   let messageTs = params.get('ts') || '';
   let channelId = params.get('channel') || 'C01ARRB6R0U';
@@ -510,18 +511,18 @@
   let totalHours = 0;
   let submitted = false;
 
-  if (!dealId) {
+  if (!dealId || !adjId) {
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('error-screen').style.display = 'flex';
-    document.getElementById('error-msg').textContent = 'No deal ID found in URL. Please access this page from the Slack message.';
+    document.getElementById('error-msg').textContent = 'Missing required parameters. Please access this page from the Slack message.';
   } else {
     loadJobs();
   }
 
   async function loadJobs() {
     try {
-      const adjId = params.get('adj_id');
-      const res = await fetch(`${PROXY_URL}/?deal_id=${dealId}&adj_id=${adjId}`);      if (!res.ok) throw new Error('Proxy fetch failed');
+      const res = await fetch(`${PROXY_URL}/?deal_id=${dealId}&adj_id=${adjId}`);
+      if (!res.ok) throw new Error('Proxy fetch failed');
       const data = await res.json();
       const payload = JSON.parse(data.value || '{}');
       jobs = payload.jobs || [];
@@ -532,12 +533,14 @@
       if (payload.channel_id) channelId = payload.channel_id;
 
       // Check if already submitted via KV
-      const lockRes = await fetch(`${PROXY_URL}/check?ts=${encodeURIComponent(messageTs)}`);
-      const lockData = await lockRes.json();
-      if (lockData.submitted) {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('already-submitted-screen').style.display = 'flex';
-        return;
+      if (messageTs) {
+        const lockRes = await fetch(`${PROXY_URL}/check?ts=${encodeURIComponent(messageTs)}`);
+        const lockData = await lockRes.json();
+        if (lockData.submitted) {
+          document.getElementById('loading-screen').style.display = 'none';
+          document.getElementById('already-submitted-screen').style.display = 'flex';
+          return;
+        }
       }
 
       renderPage();
@@ -726,15 +729,15 @@
       materials: r.materials
     }));
 
-const payload = {
-  deal_id: dealId,
-  adj_id: adjId,
-  total: total,
-  total_hours: totalHours,
-  message_ts: messageTs,
-  channel_id: channelId,
-  splits: splits
-};
+    const payload = {
+      deal_id: dealId,
+      adj_id: adjId,
+      total: total,
+      total_hours: totalHours,
+      message_ts: messageTs,
+      channel_id: channelId,
+      splits: splits
+    };
 
     try {
       const res = await fetch(PROXY_URL, {
