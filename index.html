@@ -726,14 +726,15 @@
       materials: r.materials
     }));
 
-    const payload = {
-      deal_id: dealId,
-      total: total,
-      total_hours: totalHours,
-      message_ts: messageTs,
-      channel_id: channelId,
-      splits: splits
-    };
+const payload = {
+  deal_id: dealId,
+  adj_id: adjId,
+  total: total,
+  total_hours: totalHours,
+  message_ts: messageTs,
+  channel_id: channelId,
+  splits: splits
+};
 
     try {
       const res = await fetch(PROXY_URL, {
