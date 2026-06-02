@@ -524,6 +524,14 @@
       const res = await fetch(`${PROXY_URL}/?deal_id=${dealId}&adj_id=${adjId}`);
       if (!res.ok) throw new Error('Proxy fetch failed');
       const data = await res.json();
+
+      // Check if already submitted (Worker returns this when Storage is gone but KV lock exists)
+      if (data.already_submitted) {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('already-submitted-screen').style.display = 'flex';
+        return;
+      }
+
       const payload = JSON.parse(data.value || '{}');
       jobs = payload.jobs || [];
       total = parseFloat(payload.total) || totalAdj;
@@ -532,7 +540,7 @@
       if (payload.message_ts) messageTs = payload.message_ts;
       if (payload.channel_id) channelId = payload.channel_id;
 
-      // Check if already submitted via KV
+      // Check KV lock before showing form
       if (messageTs) {
         const lockRes = await fetch(`${PROXY_URL}/check?ts=${encodeURIComponent(messageTs)}`);
         const lockData = await lockRes.json();
