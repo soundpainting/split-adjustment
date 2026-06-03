@@ -525,7 +525,6 @@
       if (!res.ok) throw new Error('Proxy fetch failed');
       const data = await res.json();
 
-      // Check if already submitted (Worker returns this when Storage is gone but KV lock exists)
       if (data.already_submitted) {
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('already-submitted-screen').style.display = 'flex';
@@ -540,7 +539,6 @@
       if (payload.message_ts) messageTs = payload.message_ts;
       if (payload.channel_id) channelId = payload.channel_id;
 
-      // Check KV lock before showing form
       if (messageTs) {
         const lockRes = await fetch(`${PROXY_URL}/check?ts=${encodeURIComponent(messageTs)}`);
         const lockData = await lockRes.json();
@@ -587,6 +585,8 @@
 
       const row = document.createElement('div');
       row.className = 'job-row';
+      row.dataset.jobName = name;
+      row.dataset.jobNumber = num;
       row.innerHTML = `
         <div class="job-info">
           <div class="job-name">${name}</div>
@@ -594,7 +594,7 @@
         </div>
         <div class="input-wrap has-prefix dollars-prefix">
           <input class="field-input scope-field" type="number" step="0.01" min="0" placeholder="0"
-            data-row-id="${rowId}" data-job-number="${num}" data-type="scope" data-index="${i}" />
+            data-row-id="${rowId}" data-job-number="${num}" data-job-name="${name}" data-type="scope" data-index="${i}" />
         </div>
         <div class="input-wrap">
           <input class="field-input hours-field" type="number" step="0.5" min="0" placeholder="0"
@@ -634,8 +634,9 @@
       const materials = parseFloat(row.querySelector('.materials-field').value) || 0;
       const rowId = row.querySelector('.scope-field').dataset.rowId;
       const jobNumber = row.querySelector('.scope-field').dataset.jobNumber;
+      const jobName = row.querySelector('.scope-field').dataset.jobName;
       result.push({
-        scope, hours, materials, rowId, jobNumber,
+        scope, hours, materials, rowId, jobNumber, jobName,
         scopeEl: row.querySelector('.scope-field'),
         hoursEl: row.querySelector('.hours-field'),
         materialsEl: row.querySelector('.materials-field')
@@ -732,6 +733,7 @@
     const splits = rows.map(r => ({
       row_id: r.rowId,
       job_number: r.jobNumber,
+      job_name: r.jobName,
       scope_adj: r.scope,
       hours: r.hours,
       materials: r.materials
