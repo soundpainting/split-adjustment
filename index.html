@@ -583,7 +583,21 @@
 
   // Compare the last sent quote's lines with the new quote's lines.
   // Same name + same price = unchanged. Same name, new price = changed. Otherwise added / removed.
+  // A deal with several jobs can send the old quote once per job (same list repeated back to back).
+  // Collapse that to one copy so lines aren't shown as "removed".
+  // Only collapses when the list is exactly one copy per job, so real duplicate lines are left alone.
+  function collapseRepeats(lines, copies) {
+    if (!Array.isArray(lines)) return [];
+    if (!(copies > 1) || lines.length % copies) return lines;
+    const size = lines.length / copies;
+    const sig = (l) => String(l?.name ?? '').trim().toLowerCase() + '|' + parseFloat(String(l?.price ?? '').replace(/[$,]/g, '') || 0);
+    const s = lines.map(sig);
+    return s.every((v, i) => v === s[i % size]) ? lines.slice(0, size) : lines;
+  }
+
   function diffLines(oldLines, newLines) {
+    oldLines = collapseRepeats(oldLines, jobs.length);
+    newLines = collapseRepeats(newLines, jobs.length);
     const cents = (v) => Math.round((parseFloat(String(v ?? '').replace(/[$,]/g, '')) || 0) * 100);
     const norm = (l) => ({ name: String(l?.name ?? '').trim(), price: cents(l?.price) });
     const key = (l) => l.name.toLowerCase();
