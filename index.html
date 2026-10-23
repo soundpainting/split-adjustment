@@ -654,7 +654,10 @@
       if (payload.message_ts) messageTs = payload.message_ts;
       if (payload.channel_id) channelId = payload.channel_id;
 
-      if (SHOW_LINES) {
+      // No earlier quote to compare with (e.g. the first quote sent through this flow):
+      // every line would look "added", so the box is skipped and amounts are typed in.
+      const hasOldLines = Array.isArray(payload.old_line_items) && payload.old_line_items.some(l => String(l?.name ?? '').trim());
+      if (SHOW_LINES && hasOldLines) {
         lineChanges = diffLines(payload.old_line_items, payload.new_line_items)
           .map(l => ({ ...l, job: jobs.length === 1 ? '0' : '' }));
       }
@@ -742,18 +745,24 @@
 
     if (SHOW_LINES && lineChanges.length) {
       renderLines();
-      applyLinePicks();
+      // Only pre-fill Scope Adj $ when the changed lines add up to the adjustment.
+      // Otherwise the lines are shown for reference and the amounts are typed in.
+      if (linesMatchTotal()) applyLinePicks();
     }
 
     validate();
   }
 
+  function linesMatchTotal() {
+    return round2(lineChanges.reduce((s, l) => s + l.delta, 0)) === round2(total);
+  }
+
   function renderLines() {
     document.getElementById('lines-card').style.display = 'block';
     const linesTotal = round2(lineChanges.reduce((s, l) => s + l.delta, 0));
-    if (linesTotal !== round2(total)) {
+    if (!linesMatchTotal()) {
       document.getElementById('lines-hint').textContent =
-        `These lines add up to ${fmtSigned(linesTotal)}; the adjustment to split is ${fmtDollars(total)} (discounts or other changes). Scope Adj $ fills in from the lines — check it before confirming.`;
+        `These lines add up to ${fmtSigned(linesTotal)}, but the adjustment to split is ${fmtDollars(total)}, so Scope Adj $ was left blank. Type in each job's amount.`;
     }
 
     const options = ['<option value="">— Pick a job —</option>']
@@ -778,7 +787,7 @@
       sel.addEventListener('change', () => {
         l.job = sel.value;
         sel.classList.toggle('picked', l.job !== '');
-        applyLinePicks();
+        if (linesMatchTotal()) applyLinePicks();
         validate();
       });
       box.appendChild(row);
